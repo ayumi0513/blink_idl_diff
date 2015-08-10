@@ -39,9 +39,6 @@ def find_interface(node,idl_fname,depth=0):
     #a list includes idl files and a list of interface names  
     idlfname_interface = {} 
 
-    #a list includes idlfname_and_interface and interface_name_list
-    return_list = []
-
     #in this for statment, we can get interface_name_list in one idl file
     for child in node.GetChildren():
         if child.GetClass().startswith('Interface'):
@@ -57,16 +54,6 @@ def find_interface(node,idl_fname,depth=0):
 	idlfname_interface[idl_fname] = interface_name_list
     return idlfname_interface
 	
-
-#this is a function to make a dictionary whose key is interface name and value is idl file names
-def make_interface_idlfname_dict(all_idlfname_interface):
-    all_interface_idlfname = {}
-    for idlfname,interface in all_idlfname_interface.items():
-	if interface[1] in all_interface_idlfname:
-	    all_interface_idlfname[interface[1]].append(idlfname)
-        else:
-	    all_interface_idlfname[interface[1]] = [idlfname]
-    return all_interface_idlfname
 
 
 
@@ -87,27 +74,41 @@ def make_idlfname_interface_dict(dir_name):
                 all_idlfname_interface[idlfname] = interface
     return all_idlfname_interface
 
- 
 
+#this is a function to make a dictionary whose key is interface name and value is idl file names
+def make_interface_idlfname_dict(all_idlfname_interface):
+    all_interface_idlfname = {}
+    for idlfname,interface in all_idlfname_interface.items():
+        if interface[1] in all_interface_idlfname:
+            all_interface_idlfname[interface[1]].append(idlfname)
+        else:
+            all_interface_idlfname[interface[1]] = [idlfname]
+    return all_interface_idlfname
+
+
+#this function checks whether the number of interface name in one idl fileis is one or not.
+#if the number is more than one,this function  returns False
+#if the number is one, this function returns True
+def count_interfacename(interfacenames):
+    for interfacename in interfacenames:
+	if not interfacename[0] == 1:
+	    return False
+    return True 
 
 
 if __name__ == '__main__':
     idlfname_interface = make_idlfname_interface_dict(sys.argv[1]) 
     print idlfname_interface
-    print 'the number of files is ', len(idlfname_interface)
     
     #in find_interface function, the number of interfaces is resistered.
-    #this for statement checks whether the number is one or not.
-    #if the number is more than one,this program  returns 'not one time!'
-    for interface in idlfname_interface.values():
-	if not interface[0] == 1:
-            print 'not one time!'
-            sys.exit()
-    print 'all interface names appear only on time :)'
+    if count_interfacename(idlfname_interface.values()):
+        print 'all interface names appear only on time :)'
+    else:
+	print 'not noe time :('
     interface_idlfname = make_interface_idlfname_dict(idlfname_interface)
-    print interface_idlfname
-    for idlfiles_list in interface_idlfname.values():
-	if len(idlfiles_list) > 1:
-	    print idlfiles_list
-	    #sys.exit()
-    print len(interface_idlfname)
+    #print interface_idlfname
+    #for idlfiles_list in interface_idlfname.values():
+	#if len(idlfiles_list) > 1:
+	    #print idlfiles_list
+    print 'the number of idl files is ', len(idlfname_interface)
+    print 'the number of interface name is', len(interface_idlfname)

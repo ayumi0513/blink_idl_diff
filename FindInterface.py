@@ -3,6 +3,7 @@
 import os,sys
 import pdb
 
+
 chromium_path = os.path.abspath(
     os.path.join(os.environ['HOME'], 'chromium', 'src'))
 blink_bindings_path = os.path.join(
@@ -27,12 +28,16 @@ def find_idl_files(dir_name):
 
 
 
+#def find_parser(idl_file):
+#	if  
+
+
 def find_interface(node,idl_fname,depth=0):
     #a list includes interface names and the number of them
     interface_name_list = []
 
-    #a dictionary includes idl files and a list of interface names  
-    idlfname_and_interface = {}
+    #a list includes idl files and a list of interface names  
+    idlfname_interface = {} 
 
     #a list includes idlfname_and_interface and interface_name_list
     return_list = []
@@ -49,39 +54,60 @@ def find_interface(node,idl_fname,depth=0):
     #(if there are not some interfaces in a idl file, this program doesn't append the empty interface_name_list. )
     if count_interface:
 	interface_name_list.insert(0,count_interface)
-	idlfname_and_interface[idl_fname] = interface_name_list
-    return idlfname_and_interface
+	idlfname_interface[idl_fname] = interface_name_list
+    return idlfname_interface
 	
 
+#this is a function to make a dictionary whose key is interface name and value is idl file names
+def make_interface_idlfname_dict(all_idlfname_interface):
+    all_interface_idlfname = {}
+    for idlfname,interface in all_idlfname_interface.items():
+	if interface[1] in all_interface_idlfname:
+	    all_interface_idlfname[interface[1]].append(idlfname)
+        else:
+	    all_interface_idlfname[interface[1]] = [idlfname]
+    return all_interface_idlfname
 
-def main(dir_name):
-    #a list includes idl file names and interface name list. 
-    list_of_interface = []
 
+
+#this is a function to make a dictionary whose key is idl file name and value is interface names
+def make_idlfname_interface_dict(dir_name):
+    #a dictionary includes idl file names and interface name list.
+    all_idlfname_interface = {}
     #a for statement to find interface names in one idl file.
     for idl_file in find_idl_files(dir_name):
         parser = BlinkIDLParser(debug=False)
         definitions = parse_file(parser, idl_file)
-        idlfname_and_interface = find_interface(definitions,os.path.basename(idl_file))
-        
+        idlfname_interface = find_interface(definitions,os.path.basename(idl_file))
+
         #if there is a empty dictionary, this program doesn't append it to list_of_interface
-        #because find_interface() returns some empty dictionary when there are not some interfaces in a idl file 
-        if not idlfname_and_interface == {}:
-	    list_of_interface.append(idlfname_and_interface)
-    return list_of_interface
-    
+        #because find_interface() returns some empty dictionary when there are not some interfaces in a idl file
+        if not idlfname_interface == {}:
+            for idlfname, interface in idlfname_interface.items():
+                all_idlfname_interface[idlfname] = interface
+    return all_idlfname_interface
+
+ 
+
+
 
 if __name__ == '__main__':
-    list_of_interface = main(sys.argv[1]) 
-    print list_of_interface
-    print 'the number of files is ', len(list_of_interface)
+    idlfname_interface = make_idlfname_interface_dict(sys.argv[1]) 
+    print idlfname_interface
+    print 'the number of files is ', len(idlfname_interface)
     
     #in find_interface function, the number of interfaces is resistered.
     #this for statement checks whether the number is one or not.
     #if the number is more than one,this program  returns 'not one time!'
-    for interface in list_of_interface:
-        for val in interface.values():
-	    if not val[0] == 1:
-                print 'not one time!'
-		sys.exit()
+    for interface in idlfname_interface.values():
+	if not interface[0] == 1:
+            print 'not one time!'
+            sys.exit()
     print 'all interface names appear only on time :)'
+    interface_idlfname = make_interface_idlfname_dict(idlfname_interface)
+    print interface_idlfname
+    for idlfiles_list in interface_idlfname.values():
+	if len(idlfiles_list) > 1:
+	    print idlfiles_list
+	    #sys.exit()
+    print len(interface_idlfname)

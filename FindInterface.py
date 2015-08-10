@@ -28,10 +28,6 @@ def find_idl_files(dir_name):
 
 
 
-#def find_parser(idl_file):
-#	if  
-
-
 def find_interface(node,idl_fname,depth=0):
     #a list includes interface names and the number of them
     interface_name_list = []
@@ -58,15 +54,14 @@ def find_interface(node,idl_fname,depth=0):
 
 
 #this is a function to make a dictionary whose key is idl file name and value is interface names
-def make_idlfname_interface_dict(dir_name):
+#this function runs first in this program
+def make_idlfname_interface_dict(node_and_idlfname_list):
     #a dictionary includes idl file names and interface name list.
     all_idlfname_interface = {}
-    #a for statement to find interface names in one idl file.
-    for idl_file in find_idl_files(dir_name):
-        parser = BlinkIDLParser(debug=False)
-        definitions = parse_file(parser, idl_file)
-        idlfname_interface = find_interface(definitions,os.path.basename(idl_file))
-
+   
+    #find interface names in one idl file.
+    for node,idl_fname in node_and_idlfname_list:
+        idlfname_interface = find_interface(node,idl_fname)
         #if there is a empty dictionary, this program doesn't append it to list_of_interface
         #because find_interface() returns some empty dictionary when there are not some interfaces in a idl file
         if not idlfname_interface == {}:
@@ -86,6 +81,21 @@ def make_interface_idlfname_dict(all_idlfname_interface):
     return all_interface_idlfname
 
 
+#def get_content_of_interface(node_and_idlfname):
+    #for node,idl_fname in node_and_idlfname:
+	
+        
+
+def main(dir_name):
+    node_and_idlfname = []
+    def_basename = {}
+    for idl_file in find_idl_files(dir_name):
+        parser = BlinkIDLParser(debug=False)
+        definitions = parse_file(parser, idl_file)
+        node_and_idlfname.append([definitions,os.path.basename(idl_file)])
+    return node_and_idlfname 
+       
+
 #this function checks whether the number of interface name in one idl fileis is one or not.
 #if the number is more than one,this function  returns False
 #if the number is one, this function returns True
@@ -97,18 +107,20 @@ def count_interfacename(interfacenames):
 
 
 if __name__ == '__main__':
-    idlfname_interface = make_idlfname_interface_dict(sys.argv[1]) 
+    idlfname_interface = make_idlfname_interface_dict(main(sys.argv[1]))
     print idlfname_interface
     
-    #in find_interface function, the number of interfaces is resistered.
+    #in find_interface function, the number of interface names is resistered, so check the number here.
     if count_interfacename(idlfname_interface.values()):
         print 'all interface names appear only on time :)'
     else:
 	print 'not noe time :('
+
     interface_idlfname = make_interface_idlfname_dict(idlfname_interface)
     #print interface_idlfname
     #for idlfiles_list in interface_idlfname.values():
 	#if len(idlfiles_list) > 1:
 	    #print idlfiles_list
+    content_of_interface = get_content_of_interface(main(sys.argv[1]))
     print 'the number of idl files is ', len(idlfname_interface)
     print 'the number of interface name is', len(interface_idlfname)

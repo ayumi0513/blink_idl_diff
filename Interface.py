@@ -28,31 +28,28 @@ def find_idl_files(dir_name):
 
 
 
-def find_interface(node_and_idlfname,depth=0):
+def find_interface(node_and_idlfname):
     idlfname_interface = {}
     for node, idlfname in node_and_idlfname:
         interface_name_list = []
         for child in node.GetChildren():
-	    if child.GetClass().startswith('Interface') and is_partial(child,False):
-                interface_name_list.append(child.GetName())
+	    if child.GetClass().startswith('Interface'):
+                #'if not' means we return interface names include partial interface name
+		if not is_partial(child):
+		    interface_name_list.append(child.GetName())
 	if len(interface_name_list):
             idlfname_interface[idlfname] = interface_name_list
     return idlfname_interface
 
 
 
-#we can select to use this func by using 'True_or_False'
-def is_partial(node,True_or_False):
+def is_partial(node):
     node_name = node.GetName()
-    if True_or_False:
-        is_partial = node.GetProperty('Partial', default = False)
-        if is_partial:
-            return True
-        else:
-	    return False
-    else:
+    is_partial = node.GetProperty('Partial', default = False)
+    if is_partial:
         return True
-
+    else:
+	return False
 
     
 def count_interface(interface_list):
@@ -60,6 +57,18 @@ def count_interface(interface_list):
         return True
     else:
         return False
+
+
+#this func must use after we get idlfname_interface dict from find_interface func
+def find_idlfname(idlfname_interface):
+    interface_idlfname = {}
+    for idlfname, interface_list in idlfname_interface.items():
+	for interface in interface_list:
+	    if interface in interface_idlfname:
+	        interface_idlfname[interface].append(idlfname)
+	    else:
+	        interface_idlfname[interface] = [idlfname] 	
+    return interface_idlfname
 
 
 
@@ -76,10 +85,11 @@ def main(dir_name):
 if __name__ == '__main__':
     node_and_idlfname_list = main(sys.argv[1])
     idlfname_interface_dict = find_interface(node_and_idlfname_list)
-    print idlfname_interface_dict
+    #print idlfname_interface_dict
     print 'the number of idl files is', len(idlfname_interface_dict)
     for interface_list in idlfname_interface_dict.values():
         if not count_interface(interface_list):
 	    print 'Some idl files include more than interface name' 
 	    sys.exit()
     print 'All idl files include one interface name'
+    print find_idlfname(idlfname_interface_dict)

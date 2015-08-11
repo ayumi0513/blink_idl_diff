@@ -27,7 +27,6 @@ def find_idl_files(dir_name):
     return idl_file_list
 
 
-
 def find_interface(node_and_idlfname):
     idlfname_interface = {}
     for node, idlfname in node_and_idlfname:
@@ -37,7 +36,7 @@ def find_interface(node_and_idlfname):
                 #'if not' means we return interface names include partial interface name
 		if not is_partial(child):
 		    interface_name_list.append(child.GetName())
-	if len(interface_name_list):
+        if len(interface_name_list):
             idlfname_interface[idlfname] = interface_name_list
     return idlfname_interface
 
@@ -71,25 +70,33 @@ def find_idlfname(idlfname_interface):
     return interface_idlfname
 
 
+def find_attribute(node_and_idlfname):
+    for node, idlfname in node_and_idlfname:
+	for attribute in  node.GetListOf('Attribute'):
+	    print attribute.GetName()
 
-def main(dir_name):
+def make_node_idlfname_list(dir_name):
     node_and_idlfname = []
     for idl_file in find_idl_files(dir_name):
         parser = BlinkIDLParser(debug=False)
         definitions = parse_file(parser, idl_file)
         node_and_idlfname.append([definitions,os.path.basename(idl_file)])
     return node_and_idlfname 
-       
+    
 
-
-if __name__ == '__main__':
-    node_and_idlfname_list = main(sys.argv[1])
+def main(dir_name):
+    node_and_idlfname_list = make_node_idlfname_list(dir_name)
     idlfname_interface_dict = find_interface(node_and_idlfname_list)
     #print idlfname_interface_dict
     print 'the number of idl files is', len(idlfname_interface_dict)
     for interface_list in idlfname_interface_dict.values():
         if not count_interface(interface_list):
-	    print 'Some idl files include more than interface name' 
-	    sys.exit()
-    print 'All idl files include one interface name'
-    print find_idlfname(idlfname_interface_dict)
+            print 'Some idl files include more than interface name'
+            sys.exit()
+    print 'All idl files include ONLY ONE interface name'
+    #print find_idlfname(idlfname_interface_dict)
+    print find_attribute(node_and_idlfname_list)
+
+   
+if __name__ == '__main__':
+    main(sys.argv[1])

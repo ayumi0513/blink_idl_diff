@@ -30,28 +30,30 @@ def find_idl_files(dir_name):
     return idl_file_list
 
 
-#make a list includes touples have definition(node) and idl file name
-def make_node_idlfname_list(dir_name):
-    node_and_idlfname = []
+
+def make_node_list(dir_name):
+    node_list = []
     parser = BlinkIDLParser(debug=False)
     for idl_file in find_idl_files(dir_name):
         definitions = parse_file(parser, idl_file)
-        node_and_idlfname.append((definitions,os.path.basename(idl_file)))
-    return node_and_idlfname
+        node_list.append(definitions)
+    return node_list
+
+def get_idlfname(node):
+    return os.path.basename(node.GetProperty('FILENAME'))
 
 
-
-def find_interfaces(node_and_idlfname):
+def make_idlfname_interface_dict(node_list):
     idlfname_interface = {}
-    for node, idlfname in node_and_idlfname:
+    for node in node_list:
         interface_name_list = []
         for child in node.GetChildren():
             if child.GetClass().startswith('Interface'):
-                #'if not' means we return interface names include partial interface name
+                #'if not' means we return only non_ partial interface names
                 if not is_partial(child):
                     interface_name_list.append(child.GetName())
         if len(interface_name_list):
-            idlfname_interface[idlfname] = interface_name_list
+            idlfname_interface[get_idlfname(node)] = interface_name_list
     return idlfname_interface
 
 
@@ -62,8 +64,8 @@ def is_partial(node):
 
     
 
-#this func must use after we get idlfname_interface dict from find_interface func
-def find_idlfnames(idlfname_interface):
+#this func must use after we get idlfname_interface dict from make_idlfname_interface_dict func
+def make_interface_idlfname_dict(idlfname_interface):
     interface_idlfname = {}
     for idlfname, interface_list in idlfname_interface.items():
         for interface in interface_list:
@@ -88,8 +90,8 @@ def get_type(node):
 
 
 #in this function, we use get_interfaces(),get_attributes(),get_type()
-def output_interfaces_attributes_types(node_and_idlfname):
-    for node, idlfname in node_and_idlfname:
+def output_interfaces_attributes_types(node_list):
+    for node in node_list:
         for interface_node in get_interfaces(node):
             print interface_node.GetName()
             for attribute_node in get_attributes(interface_node):
@@ -105,23 +107,25 @@ def get_arguments(operation_node):
         arguments.append(argument_node)
     return arguments
 
-def output_interfaces_operations(node_and_idlfname):
-    for node, idlfname in node_and_idlfname:
+def output_interfaces_operations(node_list):
+    for node in node_list:
         for interface_node in get_interfaces(node):
             print interface_node.GetName()
             for operation_node in get_operations(interface_node):        
                 print '  type:',get_type(operation_node).GetName(),' ,operation:', operation_node.GetName()
                 for argument_node in get_arguments(operation_node):
                     print '    argtype:', get_type(argument_node).GetName()  ,' ,arg:', argument_node.GetName()
-                    print '    this idl file is:', idlfname
+                    print '    this idl file is:', get_idlfname(node)
                         
-                     
+                         
+
+
 
 def main(argv):
     dir_name = argv[0]
-    node_and_idlfname_list = make_node_idlfname_list(dir_name)
-    idlfname_interface_dict = find_interfaces(node_and_idlfname_list)
-    #print idlfname_interface_dict
+    node_list = make_node_list(dir_name)
+    idlfname_interface_dict = make_idlfname_interface_dict(node_list)
+    print idlfname_interface_dict
     print 'the number of idl files is', len(idlfname_interface_dict)
     for interface_list in idlfname_interface_dict.values():
         if not len(interface_list) == 1:
@@ -129,8 +133,8 @@ def main(argv):
             sys.exit()
     print 'All idl files include ONLY ONE interface name'
     #print find_idlfnames(idlfname_interface_dict)
-    #output_interfaces_attributes_types(node_and_idlfname_list)    
-    output_interfaces_operations(node_and_idlfname_list)
+    #output_interfaces_attributes_types(node_list)    
+    #output_interfaces_operations(node_list)
 
 
 if __name__ == '__main__':

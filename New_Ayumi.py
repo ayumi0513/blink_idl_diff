@@ -125,16 +125,17 @@ def make_json_file(node_list):
         json_value = {}
         for interface_node in get_interfaces(node):
             interface_value = []
-            #opetype_opename = {}
             for operation_node in get_operations(interface_node):
                 ope_arg_list = []
-                #argtype_argname = {}
                 opetype_opename = (get_type(operation_node).GetName(),operation_node.GetName())
-                interface_value.append(opetype_opename)
+                ope_arg_list.append(opetype_opename)
                 for argument_node in get_arguments(operation_node):
                     argtype_argname = (get_type(argument_node).GetName(),argument_node.GetName())
                     ope_arg_list.append(argtype_argname)
                 interface_value.append(ope_arg_list)
+            for attribute_node in get_attributes(interface_node):
+                attritype_attriname = (get_type(attribute_node).GetName(), attribute_node.GetName())
+                interface_value.append(attritype_attriname)
             json_value[interface_node.GetName()] = interface_value
         json_data.setdefault(get_idlfname(interface_node),[]).append(json_value)
     with  open('json_file.json','w') as f:

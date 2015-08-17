@@ -42,7 +42,6 @@ def make_node_list(dir_name):
 def get_idlfname(node):
     return os.path.basename(node.GetProperty('FILENAME'))
 
-
 def make_idlfname_interface_dict(node_list):
     idlfname_interface = {}
     for node in node_list:
@@ -59,30 +58,29 @@ def make_idlfname_interface_dict(node_list):
     return idlfname_interface
 
 
-
 def is_partial(node):
     #if the node is partial, return True
     return node.GetProperty('Partial', default = False)
 
 designated_idlfname = 'Storage.idl'
 
-def get_properties(node_list):
+def get_idl_properties(node_list):
     print '~~~~~~~~GetProperties~~~~~~~~~'
     for node in node_list:
         if get_idlfname(node) == 'Storage.idl':
             properties =  node.GetProperties()
     return properties
 
-#this func must use after we get idlfname_interface dict from make_idlfname_interface_dict func
-def make_interface_idlfname_dict(idlfname_interface):
-    interface_idlfname = {}
-    for idlfname, interface_list in idlfname_interface.items():
-        for interface in interface_list:
-            if interface in interface_idlfname:
-                interface_idlfname[interface].append(idlfname)
-            else:
-                interface_idlfname[interface] = [idlfname]
-    return interface_idlfname
+
+def get_operation_properties(node_list):
+    print '~~~~~~~~GetProperties~~~~~~~~~'
+    properties = []
+    for node in node_list:
+        if get_idlfname(node) == 'Storage.idl':
+            for interface in get_interfaces(node):
+                for operation in get_operations(interface):
+                    properties.append(operation.GetProperties())
+    return properties
 
 
 
@@ -135,7 +133,14 @@ def get_argument_value(argument_node):
 def get_operation_value(operation_node,argument_list):
     operation_value = {}
     operation_value['Type'] = get_type(operation_node).GetName()
-    operation_value['Name'] = operation_node.GetName()
+    if operation_node.GetProperty('GETTER',default=None):
+        operation_value['Name']  = 'getter'
+    elif operation_node.GetProperty('SETTER',default=None):
+        operation_value['Name'] = 'setter'
+    elif operation_node.GetProperty('DELETER',default=None) :
+        operation_value['Name']  = 'deleter'
+    else:
+        operation_value['Name'] = operation_node.GetName()
     operation_value['Argument'] = argument_list
     return operation_value
 
@@ -184,7 +189,7 @@ def make_json_file(node_list):
         json_value['Interface'] = interface_list
         json_data[get_idlfname(interface_node)] = json_value
     with  open('json_file.json','w') as f:
-        json.dump(json_data,f,indent=4)
+        json.dump(json_data,f,sort_keys=True,indent=4)
         f.close()
 
 
@@ -192,20 +197,14 @@ def main(argv):
     dir_name = argv[0]
     node_list = make_node_list(dir_name)
     idlfname_interface_dict = make_idlfname_interface_dict(node_list)
-    #print idlfname_interface_dict
-    #print make_idlfname_json(idlfname_interface_dict)
-    #print make_json(node_list)
     print 'the number of idl files is', len(idlfname_interface_dict)
     for interface_list in idlfname_interface_dict.values():
         if not len(interface_list) == 1:
             print 'Some idl files include more than interface name'
             sys.exit()
     print 'All idl files include ONLY ONE interface name'
-    #print find_idlfnames(idlfname_interface_dict)
-    #output_interfaces_attributes_types(node_list)
-    #output_interfaces_operations(node_list)
-    #print get_properties(node_list)
     make_json_file(node_list)
+    #print get_operation_properties(node_list)
 
 if __name__ == '__main__':
     main(sys.argv[1:])

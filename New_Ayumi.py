@@ -92,6 +92,13 @@ def get_interfaces(node):
 def get_attributes(interface_node):
     return interface_node.GetListOf('Attribute')
 
+def get_const(interface_node):
+    return interface_node.GetListOf('Const')
+
+def get_const_children(interface_node):
+    return interface_node.GetChildren()
+
+
 def get_operations(interface_node):
     return interface_node.GetListOf('Operation')
 
@@ -100,7 +107,6 @@ def get_type(node):
     type_node = node.GetListOf('Type')[0]
     return type_node.GetChildren()[0]
 
-    return interface_node.GetListOf('Operation')
 
 def get_arguments(operation_node):
     arguments = []
@@ -109,9 +115,6 @@ def get_arguments(operation_node):
         arguments.append(argument_node)
     return arguments
 
-
-def make_idlfname_json(idlfname_interface_dict):
-    return json.dumps(idlfname_interface_dict, indent = 4)
 
 def get_operation_names(operation_node_list):
     operation_name_list = []
@@ -136,6 +139,9 @@ def make_json_file(node_list):
             for attribute_node in get_attributes(interface_node):
                 attritype_attriname = (get_type(attribute_node).GetName(), attribute_node.GetName())
                 interface_value.append(attritype_attriname)
+            for const_node in get_const(interface_node):
+                consttype_constname = (get_const_children(const_node)[0].GetName(), const_node.GetName(), get_const_children(const_node)[1].GetName())
+                interface_value.append(consttype_constname)
             json_value[interface_node.GetName()] = interface_value
         json_data.setdefault(get_idlfname(interface_node),[]).append(json_value)
     with  open('json_file.json','w') as f:

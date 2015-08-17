@@ -89,13 +89,16 @@ def make_interface_idlfname_dict(idlfname_interface):
 def get_interfaces(node):
     return node.GetListOf('Interface')
 
+
 def get_attributes(interface_node):
     return interface_node.GetListOf('Attribute')
+
 
 def get_const(interface_node):
     return interface_node.GetListOf('Const')
 
-def get_const_children(interface_node):
+#return type and value list of const
+def get_const_type_value(interface_node):
     return interface_node.GetChildren()
 
 
@@ -122,30 +125,66 @@ def get_operation_names(operation_node_list):
         operation_name_list.append(operation_node.GetName())
     return operation_name_list
 
+def get_argument_value(argument_node):
+    argument_value = {}
+    argument_value['Type'] = get_type(argument_node).GetName()
+    argument_value['Name'] = argument_node.GetName()
+    return argument_value
+
+
+def get_operation_value(operation_node,argument_list):
+    operation_value = {}
+    operation_value['Type'] = get_type(operation_node).GetName()
+    operation_value['Name'] = operation_node.GetName()
+    operation_value['Argument'] = argument_list
+    return operation_value
+
+def get_attribute_value(attribute_node):
+    attribute_value = {}
+    attribute_value['Type'] = get_type(attribute_node).GetName()
+    attribute_value['Name'] = attribute_node.GetName()
+    return attribute_value
+
+def get_const_value(const_node):
+    const_value = {}
+    const_value['Type'] = get_const_type_value(const_node)[0].GetName()
+    const_value['Name'] = const_node.GetName()
+    const_value['Value'] = get_const_type_value(const_node)[1].GetName()
+    return const_value
+
+def get_interface_value(interface_node,operation_list,attribute_list,const_list):
+    interface_value = {}
+    interface_value['Name'] = interface_node.GetName()
+    interface_value['Operation'] = operation_list
+    interface_value['Attribute'] = attribute_list
+    interface_value['Const'] = const_list
+    return interface_value
+
+
 def make_json_file(node_list):
     json_data = {}
     for node in node_list:
         json_value = {}
+        interface_list = []
         for interface_node in get_interfaces(node):
-            interface_value = []
+            interface_value = {}
+            operation_list = []
+            attribute_list = []
+            const_list = []
             for operation_node in get_operations(interface_node):
-                ope_arg_list = []
-                opetype_opename = (get_type(operation_node).GetName(),operation_node.GetName())
-                ope_arg_list.append(opetype_opename)
+                argument_list = []
                 for argument_node in get_arguments(operation_node):
-                    argtype_argname = (get_type(argument_node).GetName(),argument_node.GetName())
-                    ope_arg_list.append(argtype_argname)
-                interface_value.append(ope_arg_list)
+                     argument_list.append(get_argument_value(argument_node))
+                operation_list.append(get_operation_value(operation_node,argument_list))
             for attribute_node in get_attributes(interface_node):
-                attritype_attriname = (get_type(attribute_node).GetName(), attribute_node.GetName())
-                interface_value.append(attritype_attriname)
+                attribute_list.append(get_attribute_value(attribute_node))
             for const_node in get_const(interface_node):
-                consttype_constname = (get_const_children(const_node)[0].GetName(), const_node.GetName(), get_const_children(const_node)[1].GetName())
-                interface_value.append(consttype_constname)
-            json_value[interface_node.GetName()] = interface_value
-        json_data.setdefault(get_idlfname(interface_node),[]).append(json_value)
+                const_list.append(get_const_value(const_node))
+            interface_list.append(get_interface_value(interface_node,operation_list,attribute_list,const_list))
+        json_value['Interface'] = interface_list
+        json_data[get_idlfname(interface_node)] = json_value
     with  open('json_file.json','w') as f:
-        json.dump(json_data,f,sort_keys=True,indent=4)
+        json.dump(json_data,f,indent=4)
         f.close()
 
 

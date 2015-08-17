@@ -134,11 +134,11 @@ def get_operation_value(operation_node,argument_list):
     operation_value = {}
     operation_value['Type'] = get_type(operation_node).GetName()
     if operation_node.GetProperty('GETTER',default=None):
-        operation_value['Name']  = 'getter'
+        operation_value['Name']  = '__getter__'
     elif operation_node.GetProperty('SETTER',default=None):
-        operation_value['Name'] = 'setter'
+        operation_value['Name'] = '__setter__'
     elif operation_node.GetProperty('DELETER',default=None) :
-        operation_value['Name']  = 'deleter'
+        operation_value['Name']  = '__deleter__'
     else:
         operation_value['Name'] = operation_node.GetName()
     operation_value['Argument'] = argument_list
@@ -172,7 +172,6 @@ def make_json_file(node_list):
         json_value = {}
         interface_list = []
         for interface_node in get_interfaces(node):
-            interface_value = {}
             operation_list = []
             attribute_list = []
             const_list = []
@@ -189,7 +188,7 @@ def make_json_file(node_list):
         json_value['Interface'] = interface_list
         json_data[get_idlfname(interface_node)] = json_value
     with  open('json_file.json','w') as f:
-        json.dump(json_data,f,sort_keys=True,indent=4)
+        json.dump(json_data,f,indent=4)
         f.close()
 
 

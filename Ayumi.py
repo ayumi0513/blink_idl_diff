@@ -2,7 +2,7 @@
 
 import os,sys
 import pdb
-
+import json
 
 chromium_path = os.path.abspath(
     os.path.join(os.environ['HOME'], 'chromium', 'src'))
@@ -50,7 +50,9 @@ def make_idlfname_interface_dict(node_list):
         for child in node.GetChildren():
             if child.GetClass().startswith('Interface'):
                 #'if not' means we return only non_ partial interface names
-                if not is_partial(child):
+                if is_partial(child):
+                    pass
+                else:
                     interface_name_list.append(child.GetName())
         if len(interface_name_list):
             idlfname_interface[get_idlfname(node)] = interface_name_list
@@ -125,12 +127,47 @@ def output_interfaces_operations(node_list):
                     print '    ArgType:', get_type(argument_node).GetName()  ,' ,ArgName:', argument_node.GetName()
 
 
+def make_idlfname_json(idlfname_interface_dict):
+    return json.dumps(idlfname_interface_dict, indent = 4)
+
+def get_operation_names(operation_node_list):
+    operation_name_list = []
+    for operation_node in operation_node_list:
+        operation_name_list.append(operation_node.GetName())
+    return operation_name_list
+
+
+#this func made to print idl file name,Interface name and Operation name as json style
+def make_json(node_list):
+    json_data = {}
+    for node in node_list:
+        for interface_node in get_interfaces(node):
+            if get_idlfname(interface_node) in json_data:
+                interface_operation = {interface_node.GetName():get_operation_names(get_operations(interface_node))}
+                json_data[get_idlfname(interface_node)].append(interface_operation)
+            else:
+                interface_operation = {interface_node.GetName():get_operation_names(get_operations(interface_node))}
+                json_data[get_idlfname(interface_node)] = [interface_operation]
+    return json.dumps(json_data,indent = 4)
+
+
+def make_json_file(node_list):
+    json_data = {}
+    for node in node_list:
+        for interface_node in get_interfaces(node):
+            interface_operation = {interface_node.GetName():get_operation_names(get_operations(interface_node))}
+            json_data.setdefault(get_idlfname(interface_node),[]).append(interface_operation)
+    with  open('json_file.json','w') as f:
+        json.dump(json_data,f,sort_keys=True,indent=4)
+        f.close()
 
 def main(argv):
     dir_name = argv[0]
     node_list = make_node_list(dir_name)
     idlfname_interface_dict = make_idlfname_interface_dict(node_list)
     #print idlfname_interface_dict
+    #print make_idlfname_json(idlfname_interface_dict)
+    #print make_json(node_list)
     print 'the number of idl files is', len(idlfname_interface_dict)
     for interface_list in idlfname_interface_dict.values():
         if not len(interface_list) == 1:
@@ -140,8 +177,8 @@ def main(argv):
     #print find_idlfnames(idlfname_interface_dict)
     #output_interfaces_attributes_types(node_list)
     output_interfaces_operations(node_list)
-    print get_properties(node_list)
-
+    #print get_properties(node_list)
+    #make_json_file(node_list)
 
 if __name__ == '__main__':
     main(sys.argv[1:])

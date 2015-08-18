@@ -39,8 +39,10 @@ def make_node_list(dir_name):
         node_list.append(definitions)
     return node_list
 
+
 def get_idlfname(node):
     return os.path.basename(node.GetProperty('FILENAME'))
+
 
 def make_idlfname_interface_dict(node_list):
     idlfname_interface = {}
@@ -58,25 +60,36 @@ def make_idlfname_interface_dict(node_list):
     return idlfname_interface
 
 
+
 def is_partial(node):
     #if the node is partial, return True
     return node.GetProperty('Partial', default = False)
 
-designated_idlfname = 'Storage.idl'
+
+
+def number_of_interfaces(idlfname_interface_dict):
+    for interface_list in idlfname_interface_dict.values():
+        if not len(interface_list) == 1:
+            return 'Some idl files include more than interface name'
+            sys.exit()
+    return 'All idl files include ONLY ONE interface name'
+
 
 def get_idl_properties(node_list):
-    print '~~~~~~~~GetProperties~~~~~~~~~'
+    print '~~~~~~~~GetIdlProperties~~~~~~~~~'
     for node in node_list:
         if get_idlfname(node) == 'Storage.idl':
             properties =  node.GetProperties()
     return properties
 
 
+designated_idlfname = 'Storage.idl'
+
 def get_operation_properties(node_list):
-    print '~~~~~~~~GetProperties~~~~~~~~~'
+    print '~~~~~~~~GetOperationProperties~~~~~~~~~'
     properties = []
     for node in node_list:
-        if get_idlfname(node) == 'Storage.idl':
+        if get_idlfname(node) == designated_idlfname:
             for interface in get_interfaces(node):
                 for operation in get_operations(interface):
                     properties.append(operation.GetProperties())
@@ -92,7 +105,7 @@ def get_attributes(interface_node):
     return interface_node.GetListOf('Attribute')
 
 
-def get_const(interface_node):
+def get_consts(interface_node):
     return interface_node.GetListOf('Const')
 
 #return type and value list of const
@@ -116,12 +129,6 @@ def get_arguments(operation_node):
         arguments.append(argument_node)
     return arguments
 
-
-def get_operation_names(operation_node_list):
-    operation_name_list = []
-    for operation_node in operation_node_list:
-        operation_name_list.append(operation_node.GetName())
-    return operation_name_list
 
 def get_argument_value(argument_node):
     argument_value = {}
@@ -165,16 +172,17 @@ def get_interface_value(interface_node,operation_list,attribute_list,const_list)
     interface_value['Const'] = const_list
     return interface_value
 
+def get_idl_value(interface_list):
+    idl_value = {}
+    idl_value['Interface'] = interface_list
+    return idl_value
 
 def make_json_file(node_list):
     json_data = {}
     for node in node_list:
-        json_value = {}
         interface_list = []
         for interface_node in get_interfaces(node):
-            operation_list = []
-            attribute_list = []
-            const_list = []
+            operation_list, attribute_list, const_list = [], [], []
             for operation_node in get_operations(interface_node):
                 argument_list = []
                 for argument_node in get_arguments(operation_node):
@@ -182,11 +190,10 @@ def make_json_file(node_list):
                 operation_list.append(get_operation_value(operation_node,argument_list))
             for attribute_node in get_attributes(interface_node):
                 attribute_list.append(get_attribute_value(attribute_node))
-            for const_node in get_const(interface_node):
+            for const_node in get_consts(interface_node):
                 const_list.append(get_const_value(const_node))
             interface_list.append(get_interface_value(interface_node,operation_list,attribute_list,const_list))
-        json_value['Interface'] = interface_list
-        json_data[get_idlfname(interface_node)] = json_value
+        json_data[get_idlfname(interface_node)] = get_idl_value(interface_list)
     with  open('json_file.json','w') as f:
         json.dump(json_data,f,indent=4)
         f.close()
@@ -197,11 +204,7 @@ def main(argv):
     node_list = make_node_list(dir_name)
     idlfname_interface_dict = make_idlfname_interface_dict(node_list)
     print 'the number of idl files is', len(idlfname_interface_dict)
-    for interface_list in idlfname_interface_dict.values():
-        if not len(interface_list) == 1:
-            print 'Some idl files include more than interface name'
-            sys.exit()
-    print 'All idl files include ONLY ONE interface name'
+    print number_of_interfaces(idlfname_interface_dict)
     make_json_file(node_list)
     #print get_operation_properties(node_list)
 

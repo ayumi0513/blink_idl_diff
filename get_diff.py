@@ -4,6 +4,7 @@ import sys
 new_json = 'shortA.json'
 old_json = 'shortB.json'
 
+#load a json file into a dictionary
 def get_json_data(fname):
     f = open(fname,'r')
     json_data = json.load(f)
@@ -12,7 +13,8 @@ def get_json_data(fname):
     return json_data
 
 
-
+#make a list of added data
+#get_data is 'Attribute' or 'Operation' or 'Const'
 def added_data(json_data1,json_data2,get_data):
     output = []
     data1_list = json_data1[get_data]
@@ -24,7 +26,8 @@ def added_data(json_data1,json_data2,get_data):
 
 
 
-
+#make a list of deleted data
+#get_data is 'Attribute' or 'Operation' or 'Const'
 def deleted_data(json_data1,json_data2,get_data):
     output = [] 
     data1_list = json_data1[get_data]             
@@ -35,7 +38,8 @@ def deleted_data(json_data1,json_data2,get_data):
     return output
 
 
-def all_added_diff(json_data1,json_data2):
+#put all added data in one
+def all_added_data(json_data1,json_data2):
     output = []
     if added_data(json_data1,json_data2,'Attribute'):
         for added_attr in added_data(json_data1,json_data2,'Attribute'):
@@ -49,8 +53,8 @@ def all_added_diff(json_data1,json_data2):
     return output
 
 
-
-def all_deleted_diff(json_data1,json_data2):
+#put all deleted data in one
+def all_deleted_data(json_data1,json_data2):
     output = []
     if deleted_data(json_data1,json_data2,'Attribute'):
         for deleted_attr in deleted_data(json_data1,json_data2,'Attribute'):
@@ -67,12 +71,12 @@ def all_deleted_diff(json_data1,json_data2):
 def print_all_diff(json_data1,json_data2):
     print ' '
     print '[Added]'
-    for e in all_added_diff(json_data1,json_data2):
-        print e
+    for data in all_added_data(json_data1,json_data2):
+        print data
     print ' '    
     print '[Deleted]'
-    for e in all_deleted_diff(json_data1,json_data2):
-        print e
+    for data in all_deleted_data(json_data1,json_data2):
+        print data
 
 
 

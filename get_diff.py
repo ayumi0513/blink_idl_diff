@@ -1,8 +1,8 @@
 import json
 import sys
 
-new_json = 'shortA.json'
-old_json = 'shortB.json'
+new_json = 'A.json'
+old_json = 'B.json'
 
 #load a json file into a dictionary
 def get_json_data(fname):
@@ -12,6 +12,36 @@ def get_json_data(fname):
     f.close()
     return json_data
 
+def get_idl_name_list(json_data):
+    idl_name_list = []
+    for data in json_data:
+        idl_name_list.append(data['FileName'])
+    return idl_name_list
+
+def get_added_idl(json_data_list1,json_data_list2):
+    idl_name_list2 = get_idl_name_list(json_data_list2)
+    added_idl = []
+    for data1 in json_data_list1:
+        if not data1['FileName'] in idl_name_list2:
+            added_idl.append('idl file {0} is added '.format(data1['FileName']))
+            json_data_list1.remove(data1)
+    return [added_idl,json_data_list1]
+
+
+def get_deleted_idl(json_data_list1,json_data_list2):
+    idl_name_list1 = get_idl_name_list(json_data_list1)
+    deleted_idl = []
+    for data2 in json_data_list2:
+        if not data2['FileName'] in idl_name_list1:
+            deleted_idl.append('idl file {0} is deleted '.format(data2['FileName']))
+            json_data_list2.remove(data2)
+    return [deleted_idl,json_data_list2]
+
+
+def get_same_idl(idl_name,json_data_list2):
+    for json_data2 in json_data_list2:
+        if idl_name == json_data2['FileName']:
+            return json_data2
 
 #make a list of added data
 #get_data is 'Attribute' or 'Operation' or 'Const'
@@ -39,8 +69,10 @@ def deleted_data(json_data1,json_data2,get_data):
 
 
 #put all added data in one
-def all_added_data(json_data1,json_data2):
+def collect_added_data(json_data1,json_data2):
     output = []
+    #for added_idl in get_added_idl(json_data1,json_data2):
+        #output.append(added_idl)
     if added_data(json_data1,json_data2,'Attribute'):
         for added_attr in added_data(json_data1,json_data2,'Attribute'):
             output.append(added_attr)
@@ -54,8 +86,10 @@ def all_added_data(json_data1,json_data2):
 
 
 #put all deleted data in one
-def all_deleted_data(json_data1,json_data2):
+def collect_deleted_data(json_data1,json_data2):
     output = []
+    #for deleted_idl in get_deleted_idl(json_data1,json_data2):
+        #output.append(deleted_idl)
     if deleted_data(json_data1,json_data2,'Attribute'):
         for deleted_attr in deleted_data(json_data1,json_data2,'Attribute'):
             output.append(deleted_attr)
@@ -68,22 +102,56 @@ def all_deleted_data(json_data1,json_data2):
     return output
 
 
-def print_all_diff(json_data1,json_data2):
+
+def all_added_data(added_idl_list,json_data_list1,json_data_list2):
+    output = []
+    for added_idl in added_idl_list:
+        output.append(added_idl)
     print ' '
     print '[Added]'
-    for data in all_added_data(json_data1,json_data2):
-        print data
-    print ' '    
+    for json_data1 in json_data_list1:
+        json_data2 = get_same_idl(json_data1['FileName'],json_data_list2)
+        for added_data in collect_added_data(json_data1,json_data2):
+            output.append(added_data)
+    return output
+
+   
+def all_deleted_data(deleted_idl_list,json_data_list1,json_data_list2):
+    output = []
+    for deleted_idl in deleted_idl_list:
+        output.append(deleted_idl)
+    print ' '
     print '[Deleted]'
-    for data in all_deleted_data(json_data1,json_data2):
-        print data
+    for json_data1 in json_data_list1:
+        json_data2 = get_same_idl(json_data1['FileName'],json_data_list2)
+        for deleted_data in collect_deleted_data(json_data1,json_data2):
+            output.append(deleted_data)
+    return output
 
 
 
 def main(argv):
-    json_data1 = get_json_data(new_json)
-    json_data2 = get_json_data(old_json)
-    print_all_diff(json_data1,json_data2)
+    json_data_list1 = get_json_data(new_json)
+    json_data_list2 = get_json_data(old_json)
+    #print_all_diff(json_data1,json_data2)
+    added_idl_list = get_added_idl(json_data_list1,json_data_list2)[0]
+    deleted_idl_list = get_deleted_idl(json_data_list1,json_data_list2)[0]
+    new_json_data_list1 = get_added_idl(json_data_list1,json_data_list2)[1]
+    new_json_data_list2 = get_deleted_idl(json_data_list1,json_data_list2)[1]
+    output = []
+    #for json_data1 in new_json_data1:
+        #json_data2 = get_same_idl(json_data1['FileName'],new_json_data2)
+        #print_all_diff(json_data1,json_data2)
+        #for data in collect_added_data(json_data1,json_data2):
+            #output.append(data)
+    #for data in output:
+        #print data
+    for added_data in all_added_data(added_idl_list,new_json_data_list1,new_json_data_list2):
+        print added_data
+    for deleted_data in all_deleted_data(deleted_idl_list,new_json_data_list1,new_json_data_list2):
+        print deleted_data
+
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])

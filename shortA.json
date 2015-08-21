@@ -1,0 +1,18 @@
+{
+        "Attribute": [
+            {
+                "Type": "DOMString", 
+                "Name": "readonlyStringAttribute"
+            }
+        ], 
+        "Operation": [], 
+        "Const": [
+            {
+                "Type": "unsigned short", 
+                "Name": "CONST_VALUE_0", 
+                "Value": "0"
+            }
+	], 
+        "Name": "TestInterfaceEventInitConstructor", 
+        "FileName": "TestInterfaceEventInitConstructor.idl"
+}

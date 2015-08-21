@@ -1,0 +1,39 @@
+{
+        "Attribute": [
+	    {
+                "Type": "SVGAnimatedAngle", 
+                "Name": "orientAngle"
+            }
+	], 
+        "Operation": [
+	    {
+                "Type": "void", 
+                "Name": "setOrientToAuto", 
+                "Argument": []
+             }, 
+            {
+                "Type": "void", 
+                "Name": "setOrientToAngle", 
+                "Argument": [
+                    {
+                        "Type": "SVGAngle", 
+                        "Name": "angle"
+                    }
+		]
+	     }	
+	], 
+        "Const": [
+		{
+                "Type": "unsigned short", 
+                "Name": "SVG_MARKERUNITS_UNKNOWN", 
+                "Value": "0"
+            }, 
+            {
+                "Type": "unsigned short", 
+                "Name": "SVG_MARKERUNITS_USERSPACEONUSE", 
+                "Value": "1"
+            }
+	], 
+        "Name": "TestInterfaceEventInitConstructor", 
+        "FileName": "TestInterfaceEventInitConstructor.idl"
+}

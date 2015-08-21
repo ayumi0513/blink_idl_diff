@@ -1,0 +1,68 @@
+[
+    {
+        "Attribute": [
+            {
+                "Type": "DOMString", 
+                "Name": "readonlyStringAttribute"
+            }
+        ], 
+        "Operation": [], 
+        "Const": [
+            {
+                "Type": "unsigned short", 
+                "Name": "CONST_VALUE_0", 
+                "Value": "0"
+            }
+	], 
+        "Name": "TestInterfaceEventInitConstructor", 
+        "FileName": "TestInterfaceEventInitConstructor.idl"
+    },
+    {
+        "Attribute": [
+            {
+                "Type": "ArrayBuffer", 
+                "Name": "buffer"
+            }, 
+            {
+                "Type": "unsigned long", 
+                "Name": "byteOffset"
+            }, 
+            {
+                "Type": "unsigned long", 
+                "Name": "byteLength"
+            }
+        ], 
+        "Operation": [], 
+        "Const": [], 
+        "Name": "ArrayBufferView", 
+        "FileName": "ArrayBufferView.idl"
+    }, 
+    {
+        "Attribute": [
+            {
+                "Type": "DOMString", 
+                "Name": "type"
+            }
+        ], 
+        "Operation": [], 
+        "Const": [
+            {
+                "Type": "unsigned short", 
+                "Name": "STYLE_RULE", 
+                "Value": "1"
+            }, 
+            {
+                "Type": "unsigned short", 
+                "Name": "CHARSET_RULE", 
+                "Value": "2"
+            }, 
+            {
+                "Type": "unsigned short", 
+                "Name": "IMPORT_RULE", 
+                "Value": "3"
+            }
+        ], 
+        "Name": "SVGTestInterface", 
+        "FileName": "SVGTestInterface.idl"
+    }
+]

@@ -81,9 +81,22 @@ def make_interface_idlfname_dict(all_idlfname_interface):
     return all_interface_idlfname
 
 
-#def get_content_of_interface(node_and_idlfname):
-    #for node,idl_fname in node_and_idlfname:
-	
+#get_interface_node func and get_content_of_interface func are used to know the content of Interface
+def get_interface_node(node):
+    interface_node_list = []
+    for child in node.GetChildren():
+        if child.GetClass().startswith('Interface'):
+            interface_node_list.append(child)
+    if not interface_node_list == []:
+        return interface_node_list
+
+
+#def get_content_of_interface(interface_node_list):
+    #interface_content_list = []
+    #for interface_node in interface_node_list:
+        #for child in interface_node.GetChildlen():
+            #interface_content_list.append(child.GetName())
+    #print interface_content_list
         
 
 def main(dir_name):
@@ -108,11 +121,11 @@ def count_interfacename(interfacenames):
 
 if __name__ == '__main__':
     idlfname_interface = make_idlfname_interface_dict(main(sys.argv[1]))
-    print idlfname_interface
+    #print idlfname_interface
     
     #in find_interface function, the number of interface names is resistered, so check the number here.
     if count_interfacename(idlfname_interface.values()):
-        print 'all interface names appear only on time :)'
+        print 'all interface names appear only one time :)'
     else:
 	print 'not noe time :('
 
@@ -121,6 +134,7 @@ if __name__ == '__main__':
     #for idlfiles_list in interface_idlfname.values():
 	#if len(idlfiles_list) > 1:
 	    #print idlfiles_list
-    content_of_interface = get_content_of_interface(main(sys.argv[1]))
+    for node,idl_fname in main(sys.argv[1]):
+        get_content_of_interface(get_interface_node(node))
     print 'the number of idl files is ', len(idlfname_interface)
     print 'the number of interface name is', len(interface_idlfname)

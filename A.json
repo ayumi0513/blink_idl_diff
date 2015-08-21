@@ -2,18 +2,12 @@
     {
         "Attribute": [
             {
-                "Type": "DOMString", 
-                "Name": "readonlyStringAttribute"
+                "Type": "SpeechGrammarList", 
+                "Name": "grammars"
             }
         ], 
         "Operation": [], 
-        "Const": [
-            {
-                "Type": "unsigned short", 
-                "Name": "CONST_VALUE_0", 
-                "Value": "0"
-            }
-	], 
+        "Const": [], 
         "Name": "TestInterfaceEventInitConstructor", 
         "FileName": "TestInterfaceEventInitConstructor.idl"
     },
@@ -32,7 +26,18 @@
                 "Name": "byteLength"
             }
         ], 
-        "Operation": [], 
+        "Operation": [
+	     {
+                "Type": "SpeechRecognitionAlternative", 
+                "Name": "__getter__", 
+                "Argument": [
+                    {
+                        "Type": "unsigned long", 
+                        "Name": "index"
+                    }
+               	]
+     	      }
+	], 
         "Const": [], 
         "Name": "ArrayBufferView", 
         "FileName": "ArrayBufferView.idl"
@@ -49,7 +54,7 @@
             {
                 "Type": "unsigned short", 
                 "Name": "STYLE_RULE", 
-                "Value": "1"
+                "Value": "4"
             }, 
             {
                 "Type": "unsigned short", 
@@ -64,5 +69,35 @@
         ], 
         "Name": "SVGTestInterface", 
         "FileName": "SVGTestInterface.idl"
+    },
+    {
+        "Attribute": [
+            {
+                "Type": "DOMString", 
+                "Name": "type"
+            }
+        ], 
+        "Operation": [], 
+        "Const": [], 
+        "Name": "SVGTestInterface", 
+        "FileName": "TestInterfaceGarbageCollected.idl"
+    },
+    {
+        "Attribute": [], 
+        "Operation": [
+            {
+                "Type": "void", 
+                "Name": "enableMockSpeechSynthesizer", 
+                "Argument": [
+                    {
+                        "Type": "Document", 
+                        "Name": "document"
+                    }
+                ]
+            }
+        ], 
+        "Const": [], 
+        "Name": "Internals", 
+        "FileName": "InternalsSpeechSynthesis.idl"
     }
 ]

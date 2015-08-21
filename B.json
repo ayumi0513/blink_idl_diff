@@ -64,5 +64,33 @@
         ], 
         "Name": "SVGTestInterface", 
         "FileName": "SVGTestInterface.idl"
+    },
+    {
+        "Attribute": [
+            {
+                "Type": "DOMString", 
+                "Name": "type"
+            }
+        ], 
+        "Operation": [], 
+        "Const": [], 
+        "Name": "SVGTestInterface", 
+        "FileName": "TestInterfaceGarbageCollected.idl"
+    },
+    {
+        "Attribute": [
+            {
+                "Type": "DOMString", 
+                "Name": "error"
+            }, 
+            {
+                "Type": "DOMString", 
+                "Name": "message"
+            }
+        ], 
+        "Operation": [], 
+        "Const": [], 
+        "Name": "SpeechRecognitionError", 
+        "FileName": "SpeechRecognitionError.idl"
     }
 ]

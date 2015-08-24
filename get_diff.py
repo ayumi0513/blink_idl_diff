@@ -8,9 +8,11 @@ old_json = 'B.json'
 def get_json_data(fname):
     f = open(fname,'r')
     json_data = json.load(f)
-    #print json.dumps(json_data,sort_keys=True,indent=4)
     f.close()
     return json_data
+    #with open(fname,'r') as f:
+        #return json.load(f)
+
 
 def get_idl_name_list(json_data_list):
     idl_name_list = []
@@ -19,14 +21,13 @@ def get_idl_name_list(json_data_list):
     return idl_name_list
 
 
-def get_added_deleted_idl_list_and_new_json_data_list(json_data_list1,json_data_list2):
+def get_added_deleted_idl_list(json_data_list1,json_data_list2):
     idl_name_list = get_idl_name_list(json_data_list2)
     idl_list = []
     for data1 in json_data_list1:
         if not data1['FileName'] in idl_name_list:
             idl_list.append('[idl file] : {0}'.format(data1['FileName']))
-            json_data_list1.remove(data1)
-    return (idl_list,json_data_list1)
+    return idl_list
 
 
 
@@ -37,14 +38,17 @@ def get_same_idl(idl_name,json_data_list2):
 
 
 #make a list of added (or deleted) data
-#get_data is 'Attribute' or 'Operation' or 'Const'
+#get_data is 'Attribute' or 'Operation' or 'Const' or 'ExtAttribute'
 def get_added_deleted_data(json_data1,json_data2,get_data):
     output = []
     data1_list = json_data1[get_data]
     data2_list = json_data2[get_data]
     for data1 in data1_list:
         if not data1 in data2_list:
+            #if 'Type' in data1:
             output.append('[{0}] : Type:{1},Name:{2} (idl:{3},Interface:{4})'.format(get_data,data1['Type'],data1['Name'],json_data1['FileName'],json_data1['Name']))
+            #else:
+                #output.append('[{0}] : Name:{1} (idl:{2},Interface:{3})'.format(get_data,data1['Name'],json_data1['FileName'],json_data1['Name']))
     return output
 
 
@@ -64,6 +68,9 @@ def collect_added_deleted_data(json_data1,json_data2):
     if get_added_deleted_data(json_data1,json_data2,'Const'):
         for cons in get_added_deleted_data(json_data1,json_data2,'Const'):
             output.append(cons)
+    #if get_added_deleted_data(json_data1,json_data2,'ExtAttributes'):
+        #for ext in get_added_deleted_data(json_data1,json_data2,'ExtAttributes'):
+            #output.append(ext)
     return output
 
 
@@ -85,14 +92,14 @@ def print_all_data(idl_list,json_data_list1,json_data_list2):
 def main(argv):
     new_json_data_list = get_json_data(new_json)
     old_json_data_list = get_json_data(old_json)
-    added_idl_list,updated_new_json_data_list = get_added_deleted_idl_list_and_new_json_data_list(new_json_data_list,old_json_data_list)
-    deleted_idl_list,updated_old_json_data_list = get_added_deleted_idl_list_and_new_json_data_list(old_json_data_list,new_json_data_list)
+    added_idl_list = get_added_deleted_idl_list(new_json_data_list,old_json_data_list)
+    deleted_idl_list = get_added_deleted_idl_list(old_json_data_list,new_json_data_list)
     print ' '
     print '===Added==='
-    print_all_data(added_idl_list,updated_new_json_data_list,updated_old_json_data_list)
+    print_all_data(added_idl_list,new_json_data_list,old_json_data_list)
     print ' '
     print '===Deleted==='
-    print_all_data(deleted_idl_list,updated_old_json_data_list,updated_new_json_data_list)
+    print_all_data(deleted_idl_list,old_json_data_list,new_json_data_list)
 
 
 if __name__ == '__main__':

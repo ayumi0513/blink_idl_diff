@@ -24,31 +24,37 @@ def get_interface_diff(new_json_data,old_json_data):
 
 
 
+def compare_data(dic1,dic2,key,output):
+    if not dic1[key] == dic2[key]:
+        if key == 'FilePath':
+            output.append('[{Key}]{FilePath}'.format(Key=key,FilePath=dic1['FilePath']))
+        else:
+            for key_element in dic1[key]:
+                if not key_element in dic2[key]:
+                    if key == 'Attribute':
+                        output.append('[{Key}]Type:{Type},Name:{Name}'.format(Key=key,Type=key_element['Type'],Name=key_element['Name']))
+                    elif key == 'Const':
+                        output.append('[{Key}]Type:{Type},Name:{Name},Value:{Value}'.format(Key=key,Type=key_element['Type'],Name=key_element['Name'],Value=key_element['Value']))
+                    elif key == 'ExtAttributes':
+                        output.append('[{Key}]Name:{Name}'.format(Key=key,Name=key_element['Name']))
+                    elif key == 'Operation':
+                        output.append('[{Key}]Type:{Type},Name:{Name}'.format(Key=key,Type=key_element['Type'],Name=key_element['Name']))
+    return output
+
+
+
 def get_diff_list(json_data1,json_data2):
     output = []
-    for interface1, dic1 in json_data1.items():
-        if not interface1 in json_data2:
-            output.append('[[Interface]]{0},{1}'.format(dic1['Name'],dic1['FilePath']))
+    for interface, dic1 in json_data1.items():
+        if not interface in json_data2:
+            output.append('[[Interface]]Name:{0},Path:{1}'.format(dic1['Name'],dic1['FilePath']))
         else:
-            print '[[Interface]]{0},{1}'.format(dic1['Name'],dic1['FilePath'])
-            if not dic1['Attribute'] in json_data2[interface1].values():
-                for attr in dic1['Attribute']:
-                    if not attr in json_data2[interface1]['Attribute']:
-                        output.append('[Attribute]Type:{0},Name:{1}'.format(attr['Type'],attr['Name']))
-            if not dic1['Const'] in json_data2[interface1].values():
-                for cns in dic1['Const']:
-                    if not cns in json_data2[interface1]['Const']:
-                        output.append('[Const]Type:{0},Name:{1},Value:{2}'.format(cns['Type'],cns['Name'],cns['Value']))
-            if not dic1['ExtAttributes'] in json_data2[interface1].values():
-                for ext in dic1['ExtAttributes']:
-                    if not ext in json_data2[interface1]['ExtAttributes']:
-                        output.append('[ExtAttributes]Name:{0}'.format(ext['Name']))
-            if not dic1['FilePath'] in json_data2[interface1].values():
-                output.append('[FilePath] : {0}'.format(dic1['FilePath']))
-            if not dic1['Operation'] in json_data2[interface1].values():
-                for ope in dic1['Operation']:
-                    if not ope in json_data2[interface1]['Operation']:
-                        output.append('[Operation]Type:{0},Name:{1}'.format(ope['Type'],ope['Name']))
+            print '[[Interface]]Name:{0},Path:{1}'.format(dic1['Name'],dic1['FilePath'])
+            output = compare_data(dic1,json_data2[interface],'Attribute',output)
+            output = compare_data(dic1,json_data2[interface],'Const',output)
+            output = compare_data(dic1,json_data2[interface],'ExtAttributes',output)
+            output = compare_data(dic1,json_data2[interface],'FilePath',output)
+            output = compare_data(dic1,json_data2[interface],'Operation',output)
     return output
 
 
@@ -58,11 +64,11 @@ def main(argv):
     #print new_json_data
     old_json_data = get_json_data(old_json)
     #print old_json_data
-    print '===Added Interface===' 
+    print '===Added===' 
     #print get_interface_diff(new_json_data,old_json_data)    
     for diff in get_diff_list(new_json_data,old_json_data):
         print diff
-    print '===Deleted Interface==='
+    print '===Deleted==='
     #print get_interface_diff(old_json_data,new_json_data)
     for diff in get_diff_list(old_json_data,new_json_data):
         print diff

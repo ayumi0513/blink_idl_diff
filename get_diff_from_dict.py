@@ -23,22 +23,32 @@ def get_interface_diff(new_json_data,old_json_data):
     return output
 
 
-
+#compare two contents(value) of an interface which have same interface name
 def compare_data(dic1,dic2,key,output):
     if not dic1[key] == dic2[key]:
         if key == 'FilePath':
-            output.append('[{Key}]{FilePath}'.format(Key=key,FilePath=dic1['FilePath']))
+            output.append('[{Key}]'.format(Key=key))
+            output.append('{FilePath}'.format(FilePath=dic1['FilePath']))
         else:
             for key_element in dic1[key]:
                 if not key_element in dic2[key]:
-                    if key == 'Attribute':
-                        output.append('[{Key}]Type:{Type},Name:{Name}'.format(Key=key,Type=key_element['Type'],Name=key_element['Name']))
-                    elif key == 'Const':
-                        output.append('[{Key}]Type:{Type},Name:{Name},Value:{Value}'.format(Key=key,Type=key_element['Type'],Name=key_element['Name'],Value=key_element['Value']))
-                    elif key == 'ExtAttributes':
-                        output.append('[{Key}]Name:{Name}'.format(Key=key,Name=key_element['Name']))
-                    elif key == 'Operation':
-                        output.append('[{Key}]Type:{Type},Name:{Name}'.format(Key=key,Type=key_element['Type'],Name=key_element['Name']))
+                    output.append('[{Key}]'.format(Key=key))
+                    output.append('Name:{Name}'.format(Name=key_element['Name']))
+                    if 'Type' in key_element:
+                        output.append('Type:{Type}'.format(Type=key_element['Type']))
+                    if 'Value' in key_element:
+                        output.append('Value:{Value}'.format(Value=key_element['Value']))
+                        
+                    #if key == 'Attribute':
+                        #output.append('[{Key}]Type:{Type},Name:{Name}'.format(Key=key,Type=key_element['Type'],Name=key_element['Name']))
+                    #elif key == 'Const':
+                        #output.append('[{Key}]Type:{Type},Name:{Name},Value:{Value}'.format(Key=key,Type=key_element['Type'],Name=key_element['Name'],Value=key_element['Value']))
+                    #elif key == 'ExtAttributes':
+                        #output.append('[{Key}]Name:{Name}'.format(Key=key,Name=key_element['Name']))
+                    #elif key == 'Operation':
+                        #for key_element2 in dic2[key]:
+                            #if not key_element['Argument'] == key_element2:
+                        #output.append('[{Key}]Type:{Type},Name:{Name}'.format(Key=key,Type=key_element['Type'],Name=key_element['Name']))
     return output
 
 
@@ -47,14 +57,17 @@ def get_diff_list(json_data1,json_data2):
     output = []
     for interface, dic1 in json_data1.items():
         if not interface in json_data2:
-            output.append('[[Interface]]Name:{0},Path:{1}'.format(dic1['Name'],dic1['FilePath']))
+            output.append('[[Interface]]')
+            output.append('Name:{Name},Path:{Path}'.format(Name=dic1['Name'],Path=dic1['FilePath']))
         else:
-            print '[[Interface]]Name:{0},Path:{1}'.format(dic1['Name'],dic1['FilePath'])
-            output = compare_data(dic1,json_data2[interface],'Attribute',output)
-            output = compare_data(dic1,json_data2[interface],'Const',output)
-            output = compare_data(dic1,json_data2[interface],'ExtAttributes',output)
-            output = compare_data(dic1,json_data2[interface],'FilePath',output)
-            output = compare_data(dic1,json_data2[interface],'Operation',output)
+            dic2 = json_data2[interface]
+            output.append('[[Interface]]')
+            output.append('Name:{Name},Path:{Path}'.format(Name=dic1['Name'],Path=dic1['FilePath']))
+            output = compare_data(dic1,dic2,'Attribute',output)
+            output = compare_data(dic1,dic2,'Const',output)
+            output = compare_data(dic1,dic2,'ExtAttributes',output)
+            output = compare_data(dic1,dic2,'FilePath',output)
+            output = compare_data(dic1,dic2,'Operation',output)
     return output
 
 

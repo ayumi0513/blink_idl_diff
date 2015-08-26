@@ -100,10 +100,8 @@ def get_diff_dict(json_data1,json_data2):
             if compare_data(dic1,dic2,'Operation'):
                 interface_diff['Operation'] = compare_data(dic1,dic2,'Operation')
             #if interface_diff not empty(that means there are some changes),
-            #add the interface name to a dictionary "interface_diff"
-            #and add the interface_diff to a list "output"
+            #add the interface_diff to a list "output"
             if interface_diff:
-              interface_diff['Name'] = dic1['Name']
               output[interface] = interface_diff
     return output
 
@@ -115,17 +113,21 @@ def print_diff(diff_dict,add_or_delete):
         print content
 
 
+def make_json_file(added_diff,deleted_diff):
+    diff = {}
+    diff['===Added==='] = added_diff
+    diff['===Deleted==='] = deleted_diff
+    with open('diff.json','w') as f:
+        json.dump(diff,f,indent=4)
+        f.close
 
 def main(argv):
     new_json_data = get_json_data(new_json)
-    #print new_json_data
     old_json_data = get_json_data(old_json)
-    #print old_json_data
     added_diff = get_diff_dict(new_json_data,old_json_data)
     deleted_diff = get_diff_dict(old_json_data,new_json_data)
     print_diff(added_diff,'===Added===')
     print_diff(deleted_diff,'===Deleted===')
-
-
+    make_json_file(added_diff,deleted_diff)
 if __name__ == '__main__':
     main(sys.argv[1:])

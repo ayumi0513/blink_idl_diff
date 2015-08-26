@@ -7,13 +7,8 @@ old_json = 'json_dict2.json'
 
 def get_json_data(fname):
     """load a json file into a dictionary"""
-    f = open(fname,'r')
-    json_data = json.load(f)
-    f.close()
-    return json_data
-    
-    #with open(fname,'r') as f:
-        #return json.load(f)
+    with open(fname,'r') as f:
+        return json.load(f)
 
 def get_interface_diff(new_json_data,old_json_data):
     output = []
@@ -23,71 +18,102 @@ def get_interface_diff(new_json_data,old_json_data):
     return output
 
 
-def operation_diff(operation_content1,operation2):
+def operation_diff(part_of_operation1,operation2):
     flag = 0
     ope_diff = {}
     ext, arg  = [], []
-    ope_diff['Name'] = operation_content1['Name']
-    for operation_content2 in operation2:
-        if operation_content2['Name'] == operation_content1['Name']:
+    ope_diff['Name'] = part_of_operation1['Name']
+    #look for the operation name which equivalent to the operation name of "part_of_operation1" in "operation2"
+    for part_of_operation2 in operation2:
+        if part_of_operation2['Name'] == part_of_operation1['Name']:
+            #if find the same operation name, change the flag number from 0 to 1
             flag = 1
-            if not operation_content2['Type'] == operation_content1['Type']:
-                ope_diff['Type'] = operation_content1['Type']
-            elif not operation_content2['ExtAttributes'] == operation_content1['ExtAttributes']:
-                for ext1 in operation_content1['ExtAttributes']:
-                    if not ext1 in operation_content2['ExtAttributes']:
+            if not part_of_operation1['Type'] == part_of_operation2['Type']:
+                ope_diff['Type'] = part_of_operation1['Type']
+            elif not part_of_operation1['ExtAttributes'] == part_of_operation2['ExtAttributes']:
+                for ext1 in part_of_operation1['ExtAttributes']:
+                    if not ext1 in part_of_operation2['ExtAttributes']:
                         ext.append(ext1['Name'])
-            elif not operation_content2['Argument'] == operation_content1['Argument']:
-                for arg1 in operation_content1['Argument']:
-                    if not arg1 in operation_content2['Argument']:
+            elif not part_of_operation2['Argument'] == part_of_operation1['Argument']:
+                for arg1 in part_of_operation1['Argument']:
+                    if not arg1 in part_of_operation2['Argument']:
                         arg.append({'Type':arg1['Type'],'Name':arg1['Name']})
+    #if the flag is still 0
+    #(that means there is not the operation ("part_of_operation1") in "operation2"),
+    #return the all operation contents 
     if flag == 0:
-        ope_diff['Name'] = operation_content1['Name']
-        ope_diff['Type'] = operation_content1['Type']
-    ope_diff['ExtAttributes'] = ext
-    ope_diff['Argument'] = arg
-    return ope_diff
+        return part_of_operation1
+        #ope_diff['Name'] = part_of_operation1['Name']
+        #ope_diff['Type'] = part_of_operation1['Type']
+    #if there are some changes in the operation("part_of_operation1"),
+    #add the name of operaiton to "ope_diff" and return it
+    elif ope_diff:
+        ope_diff['Name'] = part_of_operation1['Name']
+        if ext:
+            ope_diff['ExtAttributes'] = ext
+        if arg:
+            ope_diff['Argument'] = arg
+        return ope_diff
 
 def compare_data(dic1,dic2,target_member):
     """compare two contents(value) of an interface which have same interface name"""
     member_diff = []
     if not dic1[target_member] == dic2[target_member]:
+        #if the place of the interface is changed, return the path of file "dic1['FilePath']"
         if target_member == 'FilePath':
             return {'FilePath':dic1['FilePath']}
         else:
-            for member_content in dic1[target_member]:
-                if not member_content in dic2[target_member]:
+            #check whether the part of the target_member of dic1 is included the target_member of dic2
+            for part_of_member in dic1[target_member]:
+                if not part_of_member in dic2[target_member]:
                     if target_member == 'Attribute':
-                        member_diff.append({'Type':member_content['Type'],'Name':member_content['Name']})
+                        member_diff.append({'Type':part_of_member['Type'],'Name':part_of_member['Name']})
                     elif target_member == 'Const':
-                        member_diff.append({'Type':member_content['Type'],'Name':member_content['Name'],'Value':member_content['Value']})
+                        member_diff.append({'Type':part_of_member['Type'],'Name':part_of_member['Name'],'Value':part_of_member['Value']})
                     elif target_member == 'ExtAttributes':
-                        member_diff.append({'Name':member_content['Name']})
+                        member_diff.append({'Name':part_of_member['Name']})
                     elif target_member == 'Operation':
-                        member_diff.append(operation_diff(member_content,dic2[target_member]))
+                        member_diff.append(operation_diff(part_of_member,dic2[target_member]))
     return member_diff
-    
+   
 
 
-def get_diff_list(json_data1,json_data2):
+def get_diff_dict(json_data1,json_data2):
     output = {}
     for interface, dic1 in json_data1.items():
         interface_diff = {}
+        #if a whole interface is changed, add all interface contents to a list "output"
         if not interface in json_data2:
-            #interface_diff['Name'] = dic1['Name']
-            #interface_diff['Path'] = dic1['FilePath']
-            #output[interface] = interface_diff
             output[interface] = dic1
+        #if there is a interface whose interface name isn't changed, check the contents of the interface
         else:
             dic2 = json_data2[interface]
-            interface_diff['Name'] = dic1['Name']
-            interface_diff['FilePath'] = compare_data(dic1,dic2,'FilePath')
-            interface_diff['Attribute'] = compare_data(dic1,dic2,'Attribute')
-            interface_diff['Const'] = compare_data(dic1,dic2,'Const')
-            interface_diff['ExtAttributes'] = compare_data(dic1,dic2,'ExtAttributes')
-            interface_diff['Operation'] = compare_data(dic1,dic2,'Operation')
-            output[interface] = interface_diff
+            #if there are some changes in the interface contents, add a key and value to a dictionary "interface_diff"
+            if compare_data(dic1,dic2,'FilePath'):
+                interface_diff['FilePath'] = compare_data(dic1,dic2,'FilePath')
+            if compare_data(dic1,dic2,'Attribute'):
+                interface_diff['Attribute'] = compare_data(dic1,dic2,'Attribute')
+            if compare_data(dic1,dic2,'Const'):
+                interface_diff['Const'] = compare_data(dic1,dic2,'Const')
+            if compare_data(dic1,dic2,'ExtAttributes'):
+                interface_diff['ExtAttributes'] = compare_data(dic1,dic2,'ExtAttributes')
+            if compare_data(dic1,dic2,'Operation'):
+                interface_diff['Operation'] = compare_data(dic1,dic2,'Operation')
+            #if interface_diff not empty(that means there are some changes),
+            #add the interface name to a dictionary "interface_diff"
+            #and add the interface_diff to a list "output"
+            if interface_diff:
+              interface_diff['Name'] = dic1['Name']
+              output[interface] = interface_diff
     return output
+
+
+def print_diff(diff_dict,add_or_delete):
+    print add_or_delete
+    for interface, content in diff_dict.items():
+        print '[[{Interface}]]'.format(Interface=interface)
+        print content
+
 
 
 def main(argv):
@@ -95,16 +121,11 @@ def main(argv):
     #print new_json_data
     old_json_data = get_json_data(old_json)
     #print old_json_data
-    print '===Added===' 
-    #print get_interface_diff(new_json_data,old_json_data)    
-    for interface, content in get_diff_list(new_json_data,old_json_data).items():
-        print '[[{Interface}]]'.format(Interface=interface)
-        print content
-    print '===Deleted==='
-    #print get_interface_diff(old_json_data,new_json_data)
-    for interface, content in get_diff_list(old_json_data,new_json_data).items():
-        print '[[{Interface}]]'.format(Interface=interface)
-        print content
+    added_diff = get_diff_dict(new_json_data,old_json_data)
+    deleted_diff = get_diff_dict(old_json_data,new_json_data)
+    print_diff(added_diff,'===Added===')
+    print_diff(deleted_diff,'===Deleted===')
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])

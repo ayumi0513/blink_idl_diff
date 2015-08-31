@@ -45,6 +45,17 @@ def get_changes(target_member1, target_member2):
 
 
 
+def make_diff_dict(target_member,del_add_chan,dic1,dic2):
+    if del_add_chan == 'Deleted' or 'Added':
+        if get_members_diff(dic1[target_member],dic2[target_member]):
+            return get_members_diff(dic1[target_member],dic2[target_member])
+    elif del_add_chan == 'Changed':
+        if get_changes(dic1['Attribute'], dic2['Attribute']):
+            return get_changes(dic1['Attribute'], dic2['Attribute'])
+
+
+
+
 def get_diff_dict(json_data1, json_data2, control):
     output = {}
     diff = {}
@@ -53,10 +64,10 @@ def get_diff_dict(json_data1, json_data2, control):
         json_data2 = json_data1
         json_data1 = tmp
     for interface, dic1 in json_data1.items():
-        add, changed, dele = {}, {}, {}
+        member_diff = {}
         #if a whole interface is changed, add all interface contents to a list "output"
         if not interface in json_data2:
-            if control == 'Add_or_Chan':
+            if control == 'Added' or control == 'Changed':
                 output[interface] = {'AddedInterface':dic1}
             else:
                 output[interface] = {'DeletedInterface':dic1}
@@ -66,43 +77,56 @@ def get_diff_dict(json_data1, json_data2, control):
             dic2 = json_data2[interface]
             #if there are some changes in the interface contents,
             #add a key and value to a dictionary "interface_diff"
-            if get_members_diff(dic1['Attribute'], dic2['Attribute']):
-                if control == 'Add_or_Chan':
-                    add['Attribute'] = get_members_diff(dic1['Attribute'], dic2['Attribute'])
-                    if get_changes(dic1['Attribute'], dic2['Attribute']):
-                        changed['Attribute'] = get_changes(dic1['Attribute'], dic2['Attribute'])
-                else:
-                    dele ['Attribute'] = get_members_diff(dic1['Attribute'], dic2['Attribute'])
-            if get_members_diff(dic1['Const'], dic2['Const']):
-                if control == 'Add_or_Chan':
-                    add['Const'] = get_members_diff(dic1['Const'], dic2['Const'])
-                    if get_changes(dic1['Const'], dic2['Const']):
-                        changed['Const'] = get_changes(dic1['Const'], dic2['Const'])
-                else:
-                    dele['Const'] = get_members_diff(dic1['Const'], dic2['Const'])
-            if get_members_diff(dic1['ExtAttributes'], dic2['ExtAttributes']):
-                if control == 'Add_or_Chan':
-                    add['ExtAttributes'] = get_members_diff(dic1['ExtAttributes'], dic2['ExtAttributes'])
-                    if get_changes(dic1['ExtAttributes'], dic2['[ExtAttributes']):
-                        changed['ExtAttributes'] = get_changes(dic1['ExtAttributes'], dic2['ExtAttributes'])
-                else:
-                    dele['ExtAttributes'] = get_members_diff(dic1['ExtAttributes'], dic2['ExtAttributes'])
-            if get_members_diff(dic1['Operation'], dic2['Operation']):
-                if control == 'Add_or_Chan':
-                    add['Operation'] = get_members_diff(dic1['Operation'], dic2['Operation'])
-                    if get_changes(dic1['Operation'], dic2['Operation']):
-                        changed['Operation'] = get_changes(dic1['Operation'], dic2['Operation'])
-                else:
-                    dele['Operation'] = get_members_diff(dic1['Operation'], dic2['Operation'])
+            if make_diff_dict('Attribute',control,dic1,dic2):
+                member_diff['Attribute'] = make_diff_dict('Attribute',control,dic1,dic2)
+            if make_diff_dict('Const',control,dic1,dic2):
+                member_diff['Const'] = make_diff_dict('Const',control,dic1,dic2)
+            if make_diff_dict('ExtAttributes',control,dic1,dic2):
+                member_diff['ExtAttributes'] = make_diff_dict('ExtAttributes',control,dic1,dic2)
+            if make_diff_dict('Operation',control,dic1,dic2):
+                member_diff['Operation'] = make_diff_dict('Operation',control,dic1,dic2)
+
+            if member_diff:
+                diff['Deleted'] = member_diff
+                output[interface] = diff
+
+            #if get_members_diff(dic1['Attribute'], dic2['Attribute']):
+                #if control == 'Add_or_Chan':
+                    #add['Attribute'] = get_members_diff(dic1['Attribute'], dic2['Attribute'])
+                    #if get_changes(dic1['Attribute'], dic2['Attribute']):
+                        #changed['Attribute'] = get_changes(dic1['Attribute'], dic2['Attribute'])
+                #else:
+                    #dele ['Attribute'] = get_members_diff(dic1['Attribute'], dic2['Attribute'])
+            #if get_members_diff(dic1['Const'], dic2['Const']):
+                #if control == 'Add_or_Chan':
+                    #add['Const'] = get_members_diff(dic1['Const'], dic2['Const'])
+                    #if get_changes(dic1['Const'], dic2['Const']):
+                        #changed['Const'] = get_changes(dic1['Const'], dic2['Const'])
+                #else:
+                    #dele['Const'] = get_members_diff(dic1['Const'], dic2['Const'])
+            #if get_members_diff(dic1['ExtAttributes'], dic2['ExtAttributes']):
+                #if control == 'Add_or_Chan':
+                    #add['ExtAttributes'] = get_members_diff(dic1['ExtAttributes'], dic2['ExtAttributes'])
+                    #if get_changes(dic1['ExtAttributes'], dic2['[ExtAttributes']):
+                        #changed['ExtAttributes'] = get_changes(dic1['ExtAttributes'], dic2['ExtAttributes'])
+                #else:
+                    #dele['ExtAttributes'] = get_members_diff(dic1['ExtAttributes'], dic2['ExtAttributes'])
+            #if get_members_diff(dic1['Operation'], dic2['Operation']):
+                #if control == 'Add_or_Chan':
+                    #add['Operation'] = get_members_diff(dic1['Operation'], dic2['Operation'])
+                    #if get_changes(dic1['Operation'], dic2['Operation']):
+                        #changed['Operation'] = get_changes(dic1['Operation'], dic2['Operation'])
+                #else:
+                    #dele['Operation'] = get_members_diff(dic1['Operation'], dic2['Operation'])
             #if interface_diff not empty(that means there are some changes),
             #add the interface_diff to a list "output"
-            if control == 'Add_or_Chan'and add != {} and changed != {}:
-                diff['Add'] = add
-                diff['Changed'] = changed
-                output[interface] = diff
-            elif control == 'Deleted' and dele != {}:
-                diff['Del'] = dele
-                output[interface] = diff
+            #if control == 'Add_or_Chan'and add != {} and changed != {}:
+                #diff['Add'] = add
+                #diff['Changed'] = changed
+                #output[interface] = diff
+            #elif control == 'Deleted' and dele != {}:
+                #diff['Del'] = dele
+                #output[interface] = diff
     return output
 
 def merge_diff(added_diff,deleted_diff):
@@ -114,7 +138,7 @@ def merge_diff(added_diff,deleted_diff):
     for interface2 in deleted_diff.keys():
         if interface2 in added_diff.keys():
             tmp =  added_diff[interface2]
-            tmp['Del'] = deleted_diff[interface2]['Del']
+            tmp['Deleted'] = deleted_diff[interface2]['Deleted']
             diff[interface2] = tmp
         elif not interface2 in added_diff.keys():
             diff[interface2] = deleted_diff[interface2]
@@ -130,7 +154,7 @@ def make_json_file(merged_diff):
 def print_diff_option(member, contents, pl_mi):
     if member == 'Name' or member == 'FilePath':
         print '  {Pl_Mi}'.format(Pl_Mi=pl_mi), member,
-        print '  ', contents
+        print ' : ', contents
     else:
         print '  {Pl_Mi}'.format(Pl_Mi=pl_mi), member
         for content in contents:
@@ -140,31 +164,23 @@ def print_diff_option(member, contents, pl_mi):
                     for val in value:
                         for k, v in val.items():
                             print '      {Pl_Mi}'.format(Pl_Mi=pl_mi), k,
-                            print '  ', v
+                            print ' : ', v
                 else:
                     print '    {Pl_Mi}'.format(Pl_Mi=pl_mi), key,
-                    print '  ', value
+                    print ' : ', value
 
 def print_changed_diff(member, contents):
     print '   ', member
     for content in contents:
         for pl_mi, changed in content.items():
-            pl_line = ' '
+            if pl_mi == '+':  
+                print '      +',
+            elif pl_mi == '-':
+                print '      -',
             for key, value in changed.items():
-                if pl_mi == '+':
-                    #pl_line = make_line_output(key,value)
-                    print '      +', key,
-                    print '  ',value
-                if pl_mi == '-':
-                    print '      -', key,
-                    print '  ', value
-            #print pl_line
-
-def make_line_output(key,value):
-    line = []
-    #return_string = key + value
-    line.append(key + value)
-    return line
+                print key,
+                print ' : ',value,
+            print ' '
 
 
 def print_diff(merged_diff):
@@ -193,8 +209,12 @@ def print_diff(merged_diff):
 def main(argv):
     new_json_data = get_json_data(new_json)
     old_json_data = get_json_data(old_json)
-    added_diff = get_diff_dict(new_json_data, old_json_data, 'Add_or_Chan')
     deleted_diff = get_diff_dict(new_json_data, old_json_data, 'Deleted')
+    added_diff = get_diff_dict(new_json_data, old_json_data, 'Added')
+    changed_diff = get_diff_dict(new_json_data, old_json_data, 'Changed')
+    print 'Deleted',deleted_diff
+    print 'Added',added_diff
+    print 'Changed',changed_diff
     merged_diff = merge_diff(added_diff, deleted_diff)
     make_json_file(merged_diff)
     print_diff(merged_diff) 

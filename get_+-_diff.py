@@ -135,7 +135,7 @@ def print_diff_option(member, contents, pl_mi):
         print '  {Pl_Mi}'.format(Pl_Mi=pl_mi), member
         for content in contents:
             for key, value in content.items():
-                if key == 'Argument':
+                if key == 'Argument' or key == 'ExtAttributes':
                     print '    {Pl_Mi}'.format(Pl_Mi=pl_mi), key
                     for val in value:
                         for k, v in val.items():
@@ -149,15 +149,15 @@ def print_changed_diff(member, contents):
     print '   ', member
     for content in contents:
         for pl_mi, changed in content.items():
-            pl_line = []
+            pl_line = ' '
             for key, value in changed.items():
                 if pl_mi == '+':
                     #pl_line = make_line_output(key,value)
                     print '      +', key,
-                    print '        ',value
+                    print '  ',value
                 if pl_mi == '-':
                     print '      -', key,
-                    print '         ', value
+                    print '  ', value
             #print pl_line
 
 def make_line_output(key,value):
@@ -168,25 +168,25 @@ def make_line_output(key,value):
 
 
 def print_diff(merged_diff):
-    for interface, add_cha_del in merged_diff.items():
-        if 'AddedInterface' in add_cha_del.keys():
-            print '+','[[{Interface}]]'.format(Interface=interface)
-            for member, contents in add_cha_del['AddedInterface'].items():
-                print_diff_option(member, contents, '+')
-        if 'DeletedInterface' in add_cha_del.keys():
-            print '-', '[[{Interface}]]'.format(Interface=interface)
-            for member, contents in add_cha_del['DeletedInterface'].items():
-                print_diff_option(member, contents, '-')
-        if 'Add' in add_cha_del.keys() or 'Del' in add_cha_del.keys() or 'Changed' in add_cha_del.keys():
-            print '[[{Interface}]]'.format(Interface=interface)
-            if 'Add' in add_cha_del.keys():
-                for member, contents in add_cha_del['Add'].items():
+    for interface, interface_contents in merged_diff.items():
+        for add_cha_del, add_cha_del_contents in interface_contents.items():
+            if add_cha_del == 'AddedInterface':
+                print '+','[[{Interface}]]'.format(Interface=interface)
+                for member, contents in add_cha_del_contents.items():
                     print_diff_option(member, contents, '+')
-            if 'Del' in add_cha_del.keys():
-                for member, content in add_cha_del['Del'].items():
+            elif add_cha_del == 'DeletedInterface':
+                print '-', '[[{Interface}]]'.format(Interface=interface)
+                for member, contents in add_cha_del_contents.items():
                     print_diff_option(member, contents, '-')
-            if 'Changed' in add_cha_del.keys():
-                for member, contents in add_cha_del['Changed'].items():
+            elif add_cha_del == 'Add':
+                print '[[{Interface}]]'.format(Interface=interface)
+                for member, contents in add_cha_del_contents.items():
+                    print_diff_option(member, contents, '+')
+            elif add_cha_del == 'Del':
+                for member, contents in add_cha_del_contents.items():
+                    print_diff_option(member, contents, '-')
+            elif add_cha_del == 'Changed':
+                for member, contents in add_cha_del_contents.items():
                     print_changed_diff(member, contents)
 
 

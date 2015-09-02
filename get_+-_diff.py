@@ -25,7 +25,10 @@ def get_del_add(target_member1, target_member2,control):
             member2_name_list.append(member_content2['Name'])
         for member_content1 in target_member1:
             if not member_content1['Name'] in member2_name_list:
-                diff.append(member_content1)
+                if control == 'Deleted':
+                    diff.append({'-':member_content1})
+                else:
+                    diff.append({'+':member_content1})
     return diff
 
 def get_changes(target_member1, target_member2):
@@ -76,7 +79,6 @@ def get_diff_dict(json_data1, json_data2, control):
         #if a whole interface is changed, add all interface contents to a list "output"
         if not interface in json_data2:
             if control == 'DeletedInterface' or control == 'AddedInterface':
-                print dic1
                 member_diff['ExtAttributes'] = dic1['ExtAttributes']
                 member_diff['Const'] = dic1['Const']
                 member_diff['Attribute'] = dic1['Attribute']
@@ -135,12 +137,6 @@ def make_json_file(merged_diff):
         json.dump(merged_diff,f,indent=4)
         f.close
 
-
-def print_diff(merged_diff):
-    for interface, interface_contents in merged_diff.items():
-        for control, control_contents in interface_contents.items():
-            if control == 'DeletedInterface':
-                print_whole_interface(control_contents)
 
 
 def print_ext(ext_list, pl_mi):
@@ -208,7 +204,6 @@ def print_ext_changed(ext_list):
         print ''
             
 def print_const_changed(const_list):
-    #print '===',const_list
     for const_dic in const_list:
         for pl_mi, const in const_dic.items():
             print '  {PL_MI} Const'.format(PL_MI=pl_mi),
@@ -222,7 +217,7 @@ def print_const_changed(const_list):
 def print_attr_changed(attr_list):
     for attr_dic in attr_list:
         for pl_mi, attr in attr_dic.items():
-            print '  {PL_MI} Attributer'.format(PL_MI=pl_mi),
+            print '  {PL_MI} Attribute'.format(PL_MI=pl_mi),
             if attr['ExtAttributes']:
                 print '[',
                 for ext in attr['ExtAttributes']:
@@ -258,52 +253,171 @@ def print_ope_changed(ope_list):
             print '             ',
             print ''
 
+def print_ext_de_ad(exts):
+    for ext in exts:
+        for pl_mi, ext_content in ext.items():
+            print pl_mi,
+            print ext_content['Name']
 
-def print_diff_option(diff,pl_mi):
+def print_const_de_ad(consts):
+    for const in consts:
+        for pl_mi, const_content in const.items():
+            print pl_mi,
+            print const_content['Type'],
+            print const_content['Name'],
+            print '=', const_content['Value']
+            print '       ',
+
+def print_attr_de_ad(attrs):
+    for attr in attrs:
+        for pl_mi, attr_content in attr.items():
+            print pl_mi,
+            if attr_content['ExtAttributes']:
+                print '[',
+                for ext in attr_content['ExtAttributes']:
+                    print ' ', ext['Name'],
+                print ']',
+            print attr_content['Type'],
+            print attr_content['Name']
+            print '           ',
+            
+            
+            
+def print_ope_de_ad(opes):
+    for ope in opes:
+        for pl_mi, ope_content in ope.items():
+            print pl_mi,
+            if ope_content['ExtAttributes']:
+                print '[',
+                for ext in ope_content['ExtAttributes']:
+                    print ' ', ext['Name'],
+                    print ']',
+            print ope_content['Type'],
+            print ope_content['Name'],
+            if ope_content['Argument']:
+                count = 0
+                print '(',
+                for arg in ope_content['Argument']:
+                    count += 1
+                    print arg['Type'],
+                    print '', arg['Name'],
+                    if count < len(ope_content['Argument']):
+                        print ',',
+                print ')'
+                print '           ',
+
+
+def gather_members(control_contents_list):
+    members = OrderedDict()
+    ext, const, attr, ope = [], [], [], []
+    for control_contents in control_contents_list:
+        for member, member_content in control_contents.items():
+            #print 'member',member
+            if member == 'ExtAttributes':
+                ext.append(member_content)
+            elif member == 'Const':
+                const.append(member_content)
+            elif member == 'Attribute':
+                attr.append(member_content)
+            elif member == 'Operation':
+                ope.append(member_content)
+    members['ExtAttributes'] = ext
+    members['Const'] = const
+    members['Attribute'] = attr
+    members['Operation'] = ope
+    #print 'membersssssssssSS', members
+    return members
+
+def print_de_ad_ch_diff_option(member_name,member,flag):
+    if flag == 0:
+        print '{Member}'.format(Member=member_name),
+        flag += 1
+        if len(member):
+            print_ext_de_ad(member)
+        else:
+            print_ext_changed(member)
+
+
+
+def print_de_ad_ch_diff(members):
+    ext_flag, const_flag, attr_flag, ope_flag = 0, 0, 0, 0
+    for member_name, member_list in members.items():
+        for member in member_list:
+            if member_name == 'ExtAttributes':
+                if ext_flag == 0:
+                    print ''
+                    print 'ExtAttributes',
+                    ext_flag += 1
+                if len(member[0]):
+                    print_ext_de_ad(member)
+                else:
+                    print_ext_changed(member)
+            elif member_name == 'Const':
+                if const_flag == 0:
+                    print ''
+                    print '  Const',
+                    const_flag += 1
+                if len(member[0]):
+                    print_const_de_ad(member)
+                else:
+                    print_const_changed(member)
+            elif member_name == 'Attribute':
+                if attr_flag == 0:
+                    print ''
+                    print '  Attribute',
+                    attr_flag +=1 
+                if len(member[0]):
+                    print_attr_de_ad(member)
+                else:
+                    print_attr_changed(member)
+            elif member_name == 'Operation':
+                if ope_flag == 0:
+                    print ''
+                    print '  Operation',
+                    ope_flag += 1
+                if len(member[0]):
+                    print_ope_de_ad(member)
+                else:
+                    print_ope_changed(memebr)
+
+
+
+def print_interface_diff(diff,pl_mi):
     for member, member_content in diff.items():
         if member_content:
             if member == 'ExtAttributes':
-                if pl_mi == '-+':
-                    print_ext_changed(member_content)
-                else:
-                    print_ext(member_content, pl_mi)
+                print_ext(member_content, pl_mi)
             elif member == 'Const':
-                if pl_mi == '-+':
-                    print_const_changed(member_content)
-                else:
-                    print_const(member_content, pl_mi)
+                print_const(member_content, pl_mi)
             elif member == 'Attribute':
-                if pl_mi == '-+':
-                    print_attr_changed(member_content)
-                else:
-                    print_attr(member_content, pl_mi)
+                print_attr(member_content, pl_mi)
             elif member == 'Operation':
-                if pl_mi == '-+':
-                    print_ope_changed(member_content)
-                else:
-                    print_ope(member_content, pl_mi)
+                print_ope(member_content, pl_mi)
 
 
 def print_diff(merged_diff):
     for interface, interface_contents in merged_diff.items():
         flag = 0
+        control_contents_list = []
         for control, control_contents in interface_contents.items():
             if control == 'DeletedInterface':
+                print ''
                 print '-[[{Interface}]]'.format(Interface=interface)
-                print_diff_option(control_contents, '-')
+                print_interface_diff(control_contents, '-')
             elif control == 'AddedInterface':
+                print ''
                 print '+[[{Interface}]]'.format(Interface=interface)
-                print_diff_option(control_contents, '+')
+                print_interface_diff(control_contents, '+')
             elif control == 'Deleted' or control == 'Added' or control == 'Changed':
                 if flag == 0:
+                    print ''
                     print '[[{Interface}]]'.format(Interface=interface)
                     flag += 1
-                if control == 'Deleted':
-                    print_diff_option(control_contents, '-')
-                elif control == 'Added':
-                    print_diff_option(control_contents, '+')
-                elif control == 'Changed':
-                    print_diff_option(control_contents,'-+')
+                control_contents_list.append(control_contents)
+        if control_contents_list:
+            members = gather_members(control_contents_list)
+            print_de_ad_ch_diff(members)
+
 
 def main(argv):
     new_json = argv[0]
@@ -311,7 +425,6 @@ def main(argv):
     new_json_data = get_json_data(new_json)
     old_json_data = get_json_data(old_json)
     deleted_interface_diff = get_diff_dict(old_json_data, new_json_data, 'DeletedInterface')
-    print '       ',deleted_interface_diff
     deleted_diff = get_diff_dict(old_json_data, new_json_data, 'Deleted')
     added_interface_diff = get_diff_dict(new_json_data, old_json_data, 'AddedInterface')
     added_diff = get_diff_dict(new_json_data, old_json_data, 'Added')
